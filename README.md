@@ -6,8 +6,8 @@
 
 ```bash
 # 1. リポジトリをクローン
-git clone https://github.com/xxx/phone_automation.git
-cd phone_automation
+git clone https://github.com/mabo-swiftechie/phone-automation.git
+cd phone-automation
 
 # 2. 設定ファイルをコピー
 cp .env.example .env
@@ -119,3 +119,8 @@ phone_automation/
 4. `./start.sh` で起動
 5. ブラウザの「設定」タブで残りのKeyを入力
 6. 完了
+
+## 詳細ドキュメント
+
+- [docs/architecture.md](docs/architecture.md) — アーキテクチャ設計、技術選定理由、音声AI比較調査
+- [docs/2026-04-26_retell_agent_setup.md](docs/2026-04-26_retell_agent_setup.md) — Retell AI エージェント設定記録

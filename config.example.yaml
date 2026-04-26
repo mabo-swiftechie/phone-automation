@@ -1,0 +1,24 @@
+# ============================================
+# AI電話自動化 — 設定ファイル（コピーして config.yaml にリネーム）
+# ============================================
+# 使い方:
+#   cp config.example.yaml config.yaml
+#   config.yaml の値を実際の情報に書き換える
+#   または Streamlit の「設定」タブから入力
+
+# OpenAI
+openai_api_key: ""
+
+# Gmail（メール確認を使う場合）
+gmail_address: ""
+gmail_app_password: ""
+
+# Retell AI（電話確認を使う場合）
+retell_api_key: ""
+retell_agent_id: ""
+
+# 会社情報（メール署名に使用）
+company_name: "〇〇不動産"
+contact_person: "担当者"
+phone_number: ""
+email_signature: ""

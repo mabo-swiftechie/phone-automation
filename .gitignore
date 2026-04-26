@@ -1,0 +1,28 @@
+# Secrets
+.env
+config.yaml
+
+# Database
+data.db
+data.db-shm
+data.db-wal
+data.db-journal
+
+# Python
+venv/
+__pycache__/
+*.pyc
+*.pyo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+
+# Misc
+recordings/
+*.log
+

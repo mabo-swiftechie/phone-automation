@@ -14,20 +14,6 @@ curl -LsSf https://astral.sh/uv/install.sh | sh
 uvx --from git+https://github.com/mabo-swiftechie/phone-automation.git phone-automation
 ```
 
-### 方法B：ダブルクリック
-
-```bash
-# リポジトリをクローン
-git clone https://github.com/mabo-swiftechie/phone-automation.git
-cd phone-automation
-
-# Mac
-./start.sh
-
-# Windows
-start.bat
-```
-
 ブラウザが自動で開く → http://localhost:8501
 
 ## 必要なAPI Key取得方法
@@ -98,8 +84,6 @@ phone_automation/
 │       ├── retell.py             # Retell AI通話
 │       └── template_manager.py   # 会話テンプレート管理
 ├── pyproject.toml                # パッケージ定義
-├── start.sh                      # Mac起動スクリプト
-├── start.bat                     # Windows起動スクリプト
 └── README.md
 ```
 

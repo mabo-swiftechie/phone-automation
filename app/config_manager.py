@@ -15,6 +15,9 @@ DEFAULTS = {
     "contact_person": "担当者",
     "phone_number": "",
     "email_signature": "",
+    "line_channel_access_token": "",
+    "line_user_id": "",
+    "base_url": "http://localhost:8000",
 }
 
 

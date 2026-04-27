@@ -89,6 +89,23 @@ def init_db():
     except Exception:
         pass
 
+    conn.execute("""
+        CREATE TABLE IF NOT EXISTS call_records (
+            id TEXT PRIMARY KEY,
+            property_id TEXT NOT NULL,
+            retell_call_id TEXT UNIQUE,
+            call_status TEXT,
+            duration_seconds INTEGER,
+            recording_url TEXT,
+            transcript TEXT,
+            vacancy_status TEXT,
+            foreigner_accepted INTEGER,
+            chinese_accepted INTEGER,
+            special_conditions TEXT,
+            called_at TEXT NOT NULL
+        )
+    """)
+    conn.commit()
     conn.close()
 
 
@@ -247,3 +264,94 @@ def update_inquiry(inq_id: str, data: dict) -> Optional[dict]:
     if d and d.get("result_json"):
         d["result_json"] = json.loads(d["result_json"])
     return d
+
+
+# ── Call Records (for FastAPI) ──
+
+def create_call_record(data: dict) -> dict:
+    rec_id = str(uuid.uuid4())
+    now = datetime.now().isoformat()
+    conn = _get_conn()
+    conn.execute(
+        """INSERT INTO call_records
+           (id, property_id, retell_call_id, call_status, duration_seconds,
+            recording_url, transcript, vacancy_status, foreigner_accepted,
+            chinese_accepted, special_conditions, called_at)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+        (
+            rec_id,
+            data.get("property_id"),
+            data.get("retell_call_id"),
+            data.get("call_status"),
+            data.get("duration_seconds"),
+            data.get("recording_url"),
+            data.get("transcript"),
+            data.get("vacancy_status"),
+            1 if data.get("foreigner_accepted") else 0,
+            1 if data.get("chinese_accepted") else 0,
+            data.get("special_conditions"),
+            now,
+        ),
+    )
+    conn.commit()
+    conn.close()
+    return get_call_record(rec_id)
+
+
+def get_call_record(rec_id: str) -> Optional[dict]:
+    conn = _get_conn()
+    row = conn.execute("SELECT * FROM call_records WHERE id = ?", (rec_id,)).fetchone()
+    conn.close()
+    if not row:
+        return None
+    d = dict(row)
+    d["foreigner_accepted"] = bool(d.get("foreigner_accepted"))
+    d["chinese_accepted"] = bool(d.get("chinese_accepted"))
+    return d
+
+
+def get_call_record_by_retell_id(retell_call_id: str) -> Optional[dict]:
+    conn = _get_conn()
+    row = conn.execute(
+        "SELECT * FROM call_records WHERE retell_call_id = ?", (retell_call_id,)
+    ).fetchone()
+    conn.close()
+    if not row:
+        return None
+    d = dict(row)
+    d["foreigner_accepted"] = bool(d.get("foreigner_accepted"))
+    d["chinese_accepted"] = bool(d.get("chinese_accepted"))
+    return d
+
+
+def list_call_records(property_id: Optional[str] = None) -> List[dict]:
+    conn = _get_conn()
+    if property_id:
+        rows = conn.execute(
+            "SELECT * FROM call_records WHERE property_id = ? ORDER BY called_at DESC",
+            (property_id,),
+        ).fetchall()
+    else:
+        rows = conn.execute("SELECT * FROM call_records ORDER BY called_at DESC").fetchall()
+    conn.close()
+    result = []
+    for r in rows:
+        d = dict(r)
+        d["foreigner_accepted"] = bool(d.get("foreigner_accepted"))
+        d["chinese_accepted"] = bool(d.get("chinese_accepted"))
+        result.append(d)
+    return result
+
+
+def update_call_record_by_retell_id(retell_call_id: str, data: dict) -> Optional[dict]:
+    if "foreigner_accepted" in data:
+        data["foreigner_accepted"] = 1 if data["foreigner_accepted"] else 0
+    if "chinese_accepted" in data:
+        data["chinese_accepted"] = 1 if data["chinese_accepted"] else 0
+    sets = ", ".join(f"{k} = ?" for k in data)
+    vals = list(data.values()) + [retell_call_id]
+    conn = _get_conn()
+    conn.execute(f"UPDATE call_records SET {sets} WHERE retell_call_id = ?", vals)
+    conn.commit()
+    conn.close()
+    return get_call_record_by_retell_id(retell_call_id)

@@ -3,10 +3,10 @@ import sqlite3
 import json
 import uuid
 from datetime import datetime
-from pathlib import Path
 from typing import Optional, List, Dict, Any
+from app.paths import DATA_DIR
 
-DB_PATH = Path(__file__).parent.parent / "data.db"
+DB_PATH = DATA_DIR / "data.db"
 
 
 def _get_conn() -> sqlite3.Connection:

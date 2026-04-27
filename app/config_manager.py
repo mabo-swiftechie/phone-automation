@@ -1,9 +1,9 @@
 from __future__ import annotations
-from pathlib import Path
 from typing import Optional
 import yaml
+from app.paths import DATA_DIR
 
-CONFIG_PATH = Path(__file__).parent.parent / "config.yaml"
+CONFIG_PATH = DATA_DIR / "config.yaml"
 
 DEFAULTS = {
     "openai_api_key": "",

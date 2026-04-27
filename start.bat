@@ -1,9 +1,12 @@
 @echo off
 cd /d "%~dp0"
-if not exist venv\Scripts\activate.bat (
-    python -m venv venv
+
+REM uv がなければインストール
+where uv >nul 2>&1 || (
+    echo uv をインストールしています...
+    powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
 )
-call venv\Scripts\activate.bat
-pip install -q -r requirements.txt
-streamlit run app/ui.py --server.port 8501
+
+REM uvx で起動
+uvx --from . phone-automation
 pause

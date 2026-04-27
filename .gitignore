@@ -22,7 +22,15 @@ Thumbs.db
 .vscode/
 .idea/
 
+# Build
+phone_automation.egg-info/
+dist/
+build/
+
 # Misc
 recordings/
 *.log
+retell_agent_config.json
+twilio_2FA_recovery_code.txt
+dummy.txt
 

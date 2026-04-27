@@ -1,15 +1,13 @@
 from __future__ import annotations
-import sys
-from pathlib import Path
-
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-
 import streamlit as st
 import streamlit.components.v1 as components
 from datetime import datetime
 import json
 import csv
 import io
+
+from app.paths import ensure_data_dir
+ensure_data_dir()
 
 from app.database import (
     init_db,
@@ -40,6 +38,9 @@ st.set_page_config(page_title="AI電話自動化", page_icon="📞", layout="wid
 
 init_db()
 seed_default_template()
+
+if not is_configured():
+    st.warning("API Keyが未設定です。設定タブから OpenAI API Key を入力してください。")
 
 STATUS_LABEL = {
     "pending": "未対応", "email_sent": "メール送信済",

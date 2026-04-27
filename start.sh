@@ -1,5 +1,12 @@
 #!/bin/bash
 cd "$(dirname "$0")"
-source venv/bin/activate 2>/dev/null || python3 -m venv venv && source venv/bin/activate
-pip install -q -r requirements.txt
-streamlit run app/ui.py --server.port 8501
+
+# uv がなければインストール
+command -v uv >/dev/null 2>&1 || {
+    echo "uv をインストールしています..."
+    curl -LsSf https://astral.sh/uv/install.sh | sh
+    export PATH="$HOME/.local/bin:$PATH"
+}
+
+# uvx で起動
+uvx --from . phone-automation

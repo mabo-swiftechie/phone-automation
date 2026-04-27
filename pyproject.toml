@@ -1,0 +1,21 @@
+[build-system]
+requires = ["setuptools>=68.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "phone-automation"
+version = "0.1.0"
+description = "AI電話自動化 — 空室確認システム"
+requires-python = ">=3.9"
+dependencies = [
+    "streamlit>=1.40.0",
+    "openai>=1.50.0",
+    "httpx>=0.28.0",
+    "pyyaml>=6.0",
+]
+
+[project.scripts]
+phone-automation = "app.cli:main"
+
+[tool.setuptools.packages.find]
+include = ["app*"]

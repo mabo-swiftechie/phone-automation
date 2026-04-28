@@ -4,8 +4,6 @@
 
 ## クイックスタート
 
-### 方法A：uvx（推奨）
-
 ```bash
 # 1. uv をインストール（初回のみ）
 curl -LsSf https://astral.sh/uv/install.sh | sh
@@ -14,7 +12,16 @@ curl -LsSf https://astral.sh/uv/install.sh | sh
 uvx --from git+https://github.com/mabo-swiftechie/phone-automation.git phone-automation
 ```
 
-ブラウザが自動で開く → http://localhost:8501
+起動後、自動的に以下が立ち上がります：
+
+| サービス | URL | 用途 |
+|----------|-----|------|
+| Streamlit UI | http://localhost:8501 | ブラウザで操作 |
+| FastAPI API | http://localhost:8000 | Webhook / API |
+
+`Ctrl+C` で両方同時に停止。
+
+---
 
 ## 必要なAPI Key取得方法
 
@@ -37,6 +44,8 @@ uvx --from git+https://github.com/mabo-swiftechie/phone-automation.git phone-aut
 3. アプリパスワード → 生成（「その他」→「メール自動化」等）
 4. 16桁のパスワードをコピー
 
+---
+
 ## 設定・データ
 
 | ファイル | 場所 | 用途 |
@@ -46,46 +55,66 @@ uvx --from git+https://github.com/mabo-swiftechie/phone-automation.git phone-aut
 
 環境変数 `PHONE_AUTOMATION_DATA` でデータディレクトリを変更可能。
 
+---
+
 ## アーキテクチャ
 
 ```
-Streamlit (ブラウザUI, localhost:8501)
-├── 🏠 物件管理 — 登録・編集・削除
-├── 📧 メール確認 — AI生成→Gmail送信→返信AI解析
-├── 📞 電話確認 — Retell AI Web Call→結果取得
-├── 📊 結果一覧 — ダッシュボード + CSV出力
-├── 💬 会話テンプレート — 積木式話術管理
-└── ⚙️ 設定 — API Key等
+uvx phone-automation
+├── FastAPI (localhost:8000)  ── Webhook / REST API
+└── Streamlit (localhost:8501) ── ブラウザUI
+    ├── 🏠 物件管理
+    ├── 📧 メール確認
+    ├── 📞 電話確認 (Retell AI)
+    ├── 📊 結果一覧 + CSV出力
+    ├── 💬 会話テンプレート
+    └── ⚙️ 設定
 SQLite (~/.phone_automation/data.db)
 ```
 
+---
+
 ## 技術スタック
 
-- Python 3.9+, Streamlit 1.40+
-- SQLite (ローカルDB)
-- OpenAI GPT-4.1-mini (メール生成・解析)
-- Retell AI (音声通話AI)
-- Gmail SMTP (メール送信)
-- uv/uvx (パッケージ管理)
+- Python 3.9+, Streamlit 1.50+, FastAPI
+- SQLite（ローカルDB、零外部依存）
+- OpenAI GPT-4.1-mini（メール生成・解析）
+- Retell AI（音声通話AI）
+- Gmail SMTP（メール送信）
+- uv/uvx（パッケージ管理）
+
+---
 
 ## ファイル構成
 
 ```
 phone_automation/
 ├── app/
-│   ├── cli.py                    # エントリポイント
-│   ├── paths.py                  # データディレクトリ管理
-│   ├── ui.py                     # Streamlit メインUI
-│   ├── database.py               # SQLite CRUD
-│   ├── config_manager.py         # YAML設定管理
-│   └── services/
-│       ├── email_sender.py       # Gmail SMTP送信
-│       ├── email_parser.py       # AI返信解析
-│       ├── retell.py             # Retell AI通話
-│       └── template_manager.py   # 会話テンプレート管理
-├── pyproject.toml                # パッケージ定義
+│   ├── cli.py              # エントリポイント（uvx起動）
+│   ├── main.py             # FastAPI アプリ
+│   ├── ui.py               # Streamlit UI
+│   ├── database.py         # SQLite CRUD
+│   ├── config_manager.py   # YAML設定管理
+│   ├── paths.py            # データディレクトリ管理
+│   ├── api/                # FastAPI ルート
+│   │   ├── calls.py
+│   │   ├── properties.py
+│   │   └── export.py
+│   ├── models/             # Pydantic スキーマ
+│   │   └── schemas.py
+│   └── services/           # 業務ロジック
+│       ├── retell.py
+│       ├── email_sender.py
+│       ├── email_parser.py
+│       ├── template_manager.py
+│       ├── line_notify.py
+│       └── property.py
+├── pyproject.toml          # パッケージ定義
+├── requirements.txt
 └── README.md
 ```
+
+---
 
 ## 同事への引き継ぎ手順
 
@@ -94,7 +123,8 @@ phone_automation/
 3. ブラウザの「設定」タブでAPI Keyを入力
 4. 完了
 
+---
+
 ## 詳細ドキュメント
 
-- [docs/architecture.md](docs/architecture.md) — アーキテクチャ設計、技術選定理由、音声AI比較調査
-- [docs/2026-04-26_retell_agent_setup.md](docs/2026-04-26_retell_agent_setup.md) — Retell AI エージェント設定記録
+- [docs/architecture.md](docs/architecture.md) — アーキテクチャ設計、技術選定理由

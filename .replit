@@ -1,0 +1,12 @@
+run = "python -m app.cli"
+
+[nix]
+channel = "stable-24_05"
+
+[deployment]
+run = ["sh", "-c", "python -m app.cli"]
+deploymentTarget = "cloudrun"
+
+[[ports]]
+localPort = 8501
+externalPort = 80

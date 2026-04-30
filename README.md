@@ -4,114 +4,69 @@
 
 ---
 
-## 初めての方へ：使い方
+## クイックスタート
 
-### ステップ1：ターミナルを開く
+### 方法1：Replit（推奨・ブラウザのみ）
 
-**Mac の場合：**
-1. 画面右上の虫眼鏡アイコン（Spotlight検索）をクリック
-2. `ターミナル` と入力 → Enter
-3. 黒い画面（ターミナル）が開きます
+[![Replit で開く](https://replit.com/badge/github/mabo-swiftechie/phone-automation)](https://replit.com/new/github/mabo-swiftechie/phone-automation)
 
-**Windows の場合：**
-1. スタートボタンをクリック
-2. `PowerShell` と入力 → Enter
-3. 青い画面（PowerShell）が開きます
+1. 上のボタンをクリック → Replit にログイン → 自動でプロジェクトが作成される
+2. 左サイドバー 🔒「Secrets」で API Key を設定（下記参照）
+3. ▶「Run」ボタンを押す
+4. ブラウザで UI が開く
 
-### ステップ2：インストール（初回のみ）
+### 方法2：ローカル起動
 
-ターミナルに以下をコピー＆ペーストして Enter を押す：
-
-**Mac：**
-```
+```bash
 curl -LsSf https://astral.sh/uv/install.sh | sh
-```
-
-**Windows：**
-```
-powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
-```
-
-> インストール完了後、**ターミナルを一度閉じて、もう一度開き直してください。**
-
-### ステップ3：設定ファイルを置く
-
-config.yaml（別途受け取ったファイル）を以下の場所に保存：
-
-**Mac：** ホームフォルダの `.phone_automation` フォルダの中
-```
-~/.phone_automation/config.yaml
-```
-
-**Windows：** ユーザーフォルダの `.phone_automation` フォルダの中
-```
-C:\Users\あなたの名前\.phone_automation\config.yaml
-```
-
-**Mac での操作手順：**
-1. ターミナルに以下を1行ずつコピー＆ペースト：
-```
-mkdir -p ~/.phone_automation
-open ~/.phone_automation
-```
-2. フォルダが開くので、受け取った config.yaml をそのフォルダに入れる
-
-### ステップ4：起動
-
-ターミナルに以下をコピー＆ペーストして Enter：
-
-```
 uvx --from git+https://github.com/mabo-swiftechie/phone-automation.git phone-automation
 ```
 
-以下が表示されたら起動成功：
-```
-🚀 FastAPI started at http://localhost:8000
-🖥️  Streamlit started at http://localhost:8501
-```
-
-ブラウザで http://localhost:8501 を開いて使います。
-
-### 終了方法
-
-ターミナルで `Ctrl` + `C` を押すと終了します。
-
-> 次回使うときは、ステップ4のコマンドをもう一度実行するだけです。
+ブラウザで http://localhost:8501 を開く。
 
 ---
 
-## 画面の使い方
+## 必要な設定（Secrets / 環境変数）
 
-| メニュー | できること |
-|----------|-----------|
-| 🏠 物件管理 | 物件を登録・編集・削除 |
-| 📧 メール確認 | AIが確認メールを作成 → 送信 → 返信を自動解析 |
-| 📞 電話確認 | AIが電話で空室確認（Web Callは無料テスト可能） |
-| 📊 結果一覧 | 全物件の確認状況一覧 → CSVダウンロード |
-| 💬 会話テンプレート | 電話で話す内容をカスタマイズ |
-| 🧪 Demo Mode | テストデータで機能体験（初めての方におすすめ） |
-| ⚙️ 設定 | API Keyなどの設定変更 |
+| 変数名 | 必須 | 取得先 |
+|--------|------|--------|
+| `OPENAI_API_KEY` | ✅ | https://platform.openai.com/api-keys |
+| `RETELL_API_KEY` | △ 電話用 | https://retellai.com → Dashboard → API Keys |
+| `RETELL_AGENT_ID` | △ 電話用 | Retell Dashboard → Agents |
+| `GMAIL_ADDRESS` | △ メール用 | Googleアカウント |
+| `GMAIL_APP_PASSWORD` | △ メール用 | Google → セキュリティ → アプリパスワード |
+| `COMPANY_NAME` | 任意 | メール署名に使用 |
+| `CONTACT_PERSON` | 任意 | メール署名に使用 |
 
-> 初めての方は「🧪 Demo Mode」から始めるのがおすすめです。
-
----
-
-## 起動後の画面
-
-起動するとブラウザで以下の2つが動きます：
-
-| URL | 用途 |
-|-----|------|
-| http://localhost:8501 | メイン画面（操作パネル） |
-| http://localhost:8000 | API（裏側で動くもの） |
+> ローカル起動の場合は、ブラウザの「⚙️ 設定」タブから入力してもOK。
 
 ---
 
-## 詳細ドキュメント
+## 画面一覧
 
-- [操作手順書](docs/OPERATION_MANUAL.md) — 各機能の詳しい使い方、テスト結果
-- [メール・電話のサンプル](docs/samples/) — 実際の送信メール・通話記録・CSV出力の例
-- [電話発信セットアップ](docs/PHONE_SETUP.md) — 実際の電話をかけるための設定
-- [クラウドデプロイ](docs/DEPLOY.md) — ブラウザだけで使う方法（開発者不要）
-- [アーキテクチャ設計](docs/architecture.md) — 技術的な設計資料
-- [要件定義仕様書](docs/REQUIREMENTS_SPEC.md) — システムの要件定義
+| メニュー | 機能 |
+|----------|------|
+| 🏠 物件管理 | 物件の登録・編集・削除 |
+| 📧 メール確認 | AIメール生成 → Gmail送信 → 返信自動解析 |
+| 📞 電話確認 | AI音声通話（Web Call無料テスト / 実際の電話発信） |
+| 📊 結果一覧 | 確認状況ダッシュボード → CSVダウンロード |
+| 💬 会話テンプレート | 電話で話す内容をブロック単位でカスタマイズ |
+| 🧪 Demo Mode | テストデータ一括生成（8シナリオ） |
+| ⚙️ 設定 | API Key・会社情報の管理 |
+
+---
+
+## ドキュメント
+
+- [操作手順書](docs/OPERATION_MANUAL.md) — 各機能の使い方・テスト結果
+- [メール・電話サンプル](docs/samples/) — 実際の送信メール・通話記録の例
+- [電話発信セットアップ](docs/PHONE_SETUP.md) — 電話番号の取得方法
+- [クラウドデプロイ](docs/DEPLOY.md) — Replit / Railway / HF Spaces
+- [アーキテクチャ設計](docs/architecture.md) — 技術選定理由
+- [要件定義仕様書](docs/REQUIREMENTS_SPEC.md) — システム要件
+
+---
+
+## 技術スタック
+
+Python 3.9+ / Streamlit / FastAPI / SQLite / OpenAI GPT-4.1-mini / Retell AI / Gmail SMTP

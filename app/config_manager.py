@@ -1,9 +1,21 @@
 from __future__ import annotations
+import os
 from typing import Optional
 import yaml
 from app.paths import DATA_DIR
 
 CONFIG_PATH = DATA_DIR / "config.yaml"
+
+# Environment variable mapping: config key → env var name
+ENV_MAP = {
+    "openai_api_key": "OPENAI_API_KEY",
+    "gmail_address": "GMAIL_ADDRESS",
+    "gmail_app_password": "GMAIL_APP_PASSWORD",
+    "retell_api_key": "RETELL_API_KEY",
+    "retell_agent_id": "RETELL_AGENT_ID",
+    "company_name": "COMPANY_NAME",
+    "contact_person": "CONTACT_PERSON",
+}
 
 DEFAULTS = {
     "openai_api_key": "",
@@ -11,8 +23,8 @@ DEFAULTS = {
     "gmail_app_password": "",
     "retell_api_key": "",
     "retell_agent_id": "",
-    "company_name": "〇〇不動産",
-    "contact_person": "担当者",
+    "company_name": "",
+    "contact_person": "",
     "phone_number": "",
     "email_signature": "",
     "line_channel_access_token": "",
@@ -28,6 +40,11 @@ def load_config() -> dict:
     else:
         saved = {}
     merged = {**DEFAULTS, **saved}
+    # Override with env vars (Replit Secrets / system env)
+    for key, env_name in ENV_MAP.items():
+        val = os.environ.get(env_name, "").strip()
+        if val:
+            merged[key] = val
     return merged
 
 

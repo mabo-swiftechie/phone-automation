@@ -1,0 +1,11 @@
+services:
+  phone-automation:
+    build: .
+    ports:
+      - "8501:8501"
+      - "8000:8000"
+    volumes:
+      - ./data:/data
+    env_file:
+      - .env
+    restart: unless-stopped

@@ -8,6 +8,9 @@ data.db-shm
 data.db-wal
 data.db-journal
 
+# Docker data volume
+data/
+
 # Python
 venv/
 __pycache__/

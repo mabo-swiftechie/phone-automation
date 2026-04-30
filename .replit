@@ -1,4 +1,4 @@
-run = "pip install . 2>/dev/null; streamlit run app/ui.py --server.headless true --server.port 8501 --browser.gatherUsageStats false"
+run = "bash run.sh"
 
 [nix]
 channel = "stable-24_05"

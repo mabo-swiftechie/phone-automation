@@ -6,21 +6,27 @@
 
 ## クイックスタート
 
-### 方法1：Replit（推奨・ブラウザのみ）
-
-[![Replit で開く](https://replit.com/badge/github/mabo-swiftechie/phone-automation)](https://replit.com/new/github/mabo-swiftechie/phone-automation)
-
-1. 上のボタンをクリック → Replit にログイン → 自動でプロジェクトが作成される
-2. 左サイドバー 🔒「Secrets」で API Key を設定（下記参照）
-3. ▶「Run」ボタンを押す
-4. ブラウザで UI が開く
-
-### 方法2：ローカル起動
+### 方法1：uvx（ローカル・推奨）
 
 ```bash
-curl -LsSf https://astral.sh/uv/install.sh | sh
-uvx --from git+https://github.com/mabo-swiftechie/phone-automation.git phone-automation
+git clone https://github.com/mabo-swiftechie/phone-automation.git
+cd phone-automation
+bash scripts/start.sh        # Mac/Linux
+scripts\start.bat            # Windows
 ```
+
+### 方法2：Docker（ローカル・データ永続）
+
+```bash
+git clone https://github.com/mabo-swiftechie/phone-automation.git
+cd phone-automation
+cp .env.example .env         # API Key を入力
+docker compose up -d
+```
+
+### 方法3：Replit（ブラウザのみ）
+
+[![Replit で開く](https://replit.com/badge/github/mabo-swiftechie/phone-automation)](https://replit.com/new/github/mabo-swiftechie/phone-automation)
 
 ブラウザで http://localhost:8501 を開く。
 
@@ -38,7 +44,9 @@ uvx --from git+https://github.com/mabo-swiftechie/phone-automation.git phone-aut
 | `COMPANY_NAME` | 任意 | メール署名に使用 |
 | `CONTACT_PERSON` | 任意 | メール署名に使用 |
 
-> ローカル起動の場合は、ブラウザの「⚙️ 設定」タブから入力してもOK。
+> uvx の場合：ブラウザの「⚙️ 設定」タブから入力してもOK。
+> Docker の場合：`.env` ファイルに記載。
+> Replit の場合：🔒 Secrets パネルに設定。
 
 ---
 
@@ -56,12 +64,23 @@ uvx --from git+https://github.com/mabo-swiftechie/phone-automation.git phone-aut
 
 ---
 
+## デプロイ方法の比較
+
+| 項目 | uvx | Docker | Replit |
+|------|-----|--------|--------|
+| 費用 | 無料 | 無料 | 無料〜$5/月 |
+| データ永続 | ✅ | ✅ | 有料のみ |
+| インターネット公開 | 不要 | 不要 | ✅ 固定URL |
+| 前提 | なし（自動） | Docker Desktop | ブラウザのみ |
+
+---
+
 ## ドキュメント
 
 - [操作手順書](docs/OPERATION_MANUAL.md) — 各機能の使い方・テスト結果
+- [デプロイガイド](docs/DEPLOY.md) — Replit / Docker / uvx 詳細手順
 - [メール・電話サンプル](docs/samples/) — 実際の送信メール・通話記録の例
 - [電話発信セットアップ](docs/PHONE_SETUP.md) — 電話番号の取得方法
-- [クラウドデプロイ](docs/DEPLOY.md) — Replit / Railway / HF Spaces
 - [アーキテクチャ設計](docs/architecture.md) — 技術選定理由
 - [要件定義仕様書](docs/REQUIREMENTS_SPEC.md) — システム要件
 

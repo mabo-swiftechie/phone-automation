@@ -110,6 +110,8 @@ uvx --from git+https://github.com/mabo-swiftechie/phone-automation.git phone-aut
 ## 詳細ドキュメント
 
 - [操作手順書](docs/OPERATION_MANUAL.md) — 各機能の詳しい使い方、テスト結果
+- [メール・電話のサンプル](docs/samples/) — 実際の送信メール・通話記録・CSV出力の例
 - [電話発信セットアップ](docs/PHONE_SETUP.md) — 実際の電話をかけるための設定
+- [クラウドデプロイ](docs/DEPLOY.md) — ブラウザだけで使う方法（開発者不要）
 - [アーキテクチャ設計](docs/architecture.md) — 技術的な設計資料
 - [要件定義仕様書](docs/REQUIREMENTS_SPEC.md) — システムの要件定義

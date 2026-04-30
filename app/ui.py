@@ -33,7 +33,25 @@ from app.services.template_manager import (
 )
 from app.services.demo_data import seed_demo_data, clear_demo_data, get_demo_stats
 
+
+def _ensure_fastapi():
+    import threading
+    import uvicorn
+    key = "_fastapi_started"
+    if not st.runtime.exists() or getattr(st.session_state, key, False):
+        return
+    st.session_state[key] = True
+
+    def run():
+        uvicorn.run("app.main:app", host="0.0.0.0", port=8000, log_level="warning")
+
+    t = threading.Thread(target=run, daemon=True)
+    t.start()
+
+
 st.set_page_config(page_title="AI電話自動化", page_icon="📞", layout="wide")
+
+_ensure_fastapi()
 
 init_db()
 seed_default_template()

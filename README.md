@@ -2,132 +2,114 @@
 
 不動産管理会社にメール・電話で空室確認を自動化するシステム。
 
-## クイックスタート
+---
 
-```bash
-# 1. uv をインストール（初回のみ）
+## 初めての方へ：使い方
+
+### ステップ1：ターミナルを開く
+
+**Mac の場合：**
+1. 画面右上の虫眼鏡アイコン（Spotlight検索）をクリック
+2. `ターミナル` と入力 → Enter
+3. 黒い画面（ターミナル）が開きます
+
+**Windows の場合：**
+1. スタートボタンをクリック
+2. `PowerShell` と入力 → Enter
+3. 青い画面（PowerShell）が開きます
+
+### ステップ2：インストール（初回のみ）
+
+ターミナルに以下をコピー＆ペーストして Enter を押す：
+
+**Mac：**
+```
 curl -LsSf https://astral.sh/uv/install.sh | sh
+```
 
-# 2. 起動
+**Windows：**
+```
+powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
+```
+
+> インストール完了後、**ターミナルを一度閉じて、もう一度開き直してください。**
+
+### ステップ3：設定ファイルを置く
+
+config.yaml（別途受け取ったファイル）を以下の場所に保存：
+
+**Mac：** ホームフォルダの `.phone_automation` フォルダの中
+```
+~/.phone_automation/config.yaml
+```
+
+**Windows：** ユーザーフォルダの `.phone_automation` フォルダの中
+```
+C:\Users\あなたの名前\.phone_automation\config.yaml
+```
+
+**Mac での操作手順：**
+1. ターミナルに以下を1行ずつコピー＆ペースト：
+```
+mkdir -p ~/.phone_automation
+open ~/.phone_automation
+```
+2. フォルダが開くので、受け取った config.yaml をそのフォルダに入れる
+
+### ステップ4：起動
+
+ターミナルに以下をコピー＆ペーストして Enter：
+
+```
 uvx --from git+https://github.com/mabo-swiftechie/phone-automation.git phone-automation
 ```
 
-起動後、自動的に以下が立ち上がります：
-
-| サービス | URL | 用途 |
-|----------|-----|------|
-| Streamlit UI | http://localhost:8501 | ブラウザで操作 |
-| FastAPI API | http://localhost:8000 | Webhook / API |
-
-`Ctrl+C` で両方同時に停止。
-
----
-
-## 必要なAPI Key取得方法
-
-初回起動後、ブラウザの「設定」タブで入力。
-
-### OpenAI（必須）
-1. https://platform.openai.com/signup で登録
-2. API Keys → Create new secret key
-3. `sk-proj-xxxxx...` をコピー
-
-### Retell AI（電話確認を使う場合）
-1. https://retellai.com で登録
-2. Dashboard → API Keys → Copy
-3. Dashboard → Agents → Agent ID をコピー
-4. ※ Web Call（ブラウザ通話）は無料でテスト可能
-
-### Gmail アプリパスワード（メール確認を使う場合）
-1. Googleアカウント → セキュリティ
-2. 2段階認証を有効化
-3. アプリパスワード → 生成（「その他」→「メール自動化」等）
-4. 16桁のパスワードをコピー
-
----
-
-## 設定・データ
-
-| ファイル | 場所 | 用途 |
-|---------|------|------|
-| `config.yaml` | `~/.phone_automation/` | API Key等の設定 |
-| `data.db` | `~/.phone_automation/` | 物件・通話データ |
-
-環境変数 `PHONE_AUTOMATION_DATA` でデータディレクトリを変更可能。
-
----
-
-## アーキテクチャ
-
+以下が表示されたら起動成功：
 ```
-uvx phone-automation
-├── FastAPI (localhost:8000)  ── Webhook / REST API
-└── Streamlit (localhost:8501) ── ブラウザUI
-    ├── 🏠 物件管理
-    ├── 📧 メール確認
-    ├── 📞 電話確認 (Retell AI)
-    ├── 📊 結果一覧 + CSV出力
-    ├── 💬 会話テンプレート
-    └── ⚙️ 設定
-SQLite (~/.phone_automation/data.db)
+🚀 FastAPI started at http://localhost:8000
+🖥️  Streamlit started at http://localhost:8501
 ```
 
----
+ブラウザで http://localhost:8501 を開いて使います。
 
-## 技術スタック
+### 終了方法
 
-- Python 3.9+, Streamlit 1.50+, FastAPI
-- SQLite（ローカルDB、零外部依存）
-- OpenAI GPT-4.1-mini（メール生成・解析）
-- Retell AI（音声通話AI）
-- Gmail SMTP（メール送信）
-- uv/uvx（パッケージ管理）
+ターミナルで `Ctrl` + `C` を押すと終了します。
+
+> 次回使うときは、ステップ4のコマンドをもう一度実行するだけです。
 
 ---
 
-## ファイル構成
+## 画面の使い方
 
-```
-phone_automation/
-├── app/
-│   ├── cli.py              # エントリポイント（uvx起動）
-│   ├── main.py             # FastAPI アプリ
-│   ├── ui.py               # Streamlit UI
-│   ├── database.py         # SQLite CRUD
-│   ├── config_manager.py   # YAML設定管理
-│   ├── paths.py            # データディレクトリ管理
-│   ├── api/                # FastAPI ルート
-│   │   ├── calls.py
-│   │   ├── properties.py
-│   │   └── export.py
-│   ├── models/             # Pydantic スキーマ
-│   │   └── schemas.py
-│   └── services/           # 業務ロジック
-│       ├── retell.py
-│       ├── email_sender.py
-│       ├── email_parser.py
-│       ├── template_manager.py
-│       ├── line_notify.py
-│       └── property.py
-├── pyproject.toml          # パッケージ定義
-├── requirements.txt
-└── README.md
-```
+| メニュー | できること |
+|----------|-----------|
+| 🏠 物件管理 | 物件を登録・編集・削除 |
+| 📧 メール確認 | AIが確認メールを作成 → 送信 → 返信を自動解析 |
+| 📞 電話確認 | AIが電話で空室確認（Web Callは無料テスト可能） |
+| 📊 結果一覧 | 全物件の確認状況一覧 → CSVダウンロード |
+| 💬 会話テンプレート | 電話で話す内容をカスタマイズ |
+| 🧪 Demo Mode | テストデータで機能体験（初めての方におすすめ） |
+| ⚙️ 設定 | API Keyなどの設定変更 |
+
+> 初めての方は「🧪 Demo Mode」から始めるのがおすすめです。
 
 ---
 
-## 同事への引き継ぎ手順
+## 起動後の画面
 
-1. uv をインストール: `curl -LsSf https://astral.sh/uv/install.sh | sh`
-2. 起動: `uvx --from git+https://github.com/mabo-swiftechie/phone-automation.git phone-automation`
-3. ブラウザの「設定」タブでAPI Keyを入力
-4. 完了
+起動するとブラウザで以下の2つが動きます：
+
+| URL | 用途 |
+|-----|------|
+| http://localhost:8501 | メイン画面（操作パネル） |
+| http://localhost:8000 | API（裏側で動くもの） |
 
 ---
 
 ## 詳細ドキュメント
 
-- [docs/architecture.md](docs/architecture.md) — アーキテクチャ設計、技術選定理由
-- [docs/OPERATION_MANUAL.md](docs/OPERATION_MANUAL.md) — 操作手順書、テスト検証結果
-- [docs/PHONE_SETUP.md](docs/PHONE_SETUP.md) — 電話発信セットアップガイド
-- [docs/REQUIREMENTS_SPEC.md](docs/REQUIREMENTS_SPEC.md) — 要件定義仕様書
+- [操作手順書](docs/OPERATION_MANUAL.md) — 各機能の詳しい使い方、テスト結果
+- [電話発信セットアップ](docs/PHONE_SETUP.md) — 実際の電話をかけるための設定
+- [アーキテクチャ設計](docs/architecture.md) — 技術的な設計資料
+- [要件定義仕様書](docs/REQUIREMENTS_SPEC.md) — システムの要件定義

@@ -1,5 +1,6 @@
+from __future__ import annotations
 import httpx
-from app.config.settings import get_settings
+from app.config_manager import load_config
 
 
 async def send_call_result_message(
@@ -7,8 +8,10 @@ async def send_call_result_message(
     result: dict,
 ) -> bool:
     """LINE Notifyで通話結果を送信する"""
-    settings = get_settings()
-    if not settings.line_channel_access_token or not settings.line_user_id:
+    cfg = load_config()
+    token = cfg.get("line_channel_access_token", "")
+    user_id = cfg.get("line_user_id", "")
+    if not token or not user_id:
         return False
 
     vacancy = result.get("vacancy_status", "不明")
@@ -26,11 +29,11 @@ async def send_call_result_message(
     )
 
     headers = {
-        "Authorization": f"Bearer {settings.line_channel_access_token}",
+        "Authorization": f"Bearer {token}",
         "Content-Type": "application/json",
     }
     payload = {
-        "to": settings.line_user_id,
+        "to": user_id,
         "messages": [{"type": "text", "text": text}],
     }
 

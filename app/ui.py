@@ -19,8 +19,6 @@ from app.database import (
     create_inquiry,
     get_inquiries,
     update_inquiry,
-    get_config,
-    set_config,
 )
 from app.config_manager import load_config, save_config, is_configured, DEFAULTS
 from app.services.email_sender import send_email, generate_inquiry_email
@@ -33,6 +31,7 @@ from app.services.template_manager import (
     set_default_template, get_default_template, export_template, import_template,
     seed_default_template, BLOCK_TYPES, BLOCK_TYPE_LABELS,
 )
+from app.services.demo_data import seed_demo_data, clear_demo_data, get_demo_stats
 
 st.set_page_config(page_title="AI電話自動化", page_icon="📞", layout="wide")
 
@@ -64,7 +63,7 @@ def show_result(r):
 # ── サイドバー ──
 tab = st.sidebar.radio(
     "メニュー",
-    ["🏠 物件管理", "📧 メール確認", "📞 電話確認", "📊 結果一覧", "💬 会話テンプレート", "⚙️ 設定"],
+    ["🏠 物件管理", "📧 メール確認", "📞 電話確認", "📊 結果一覧", "💬 会話テンプレート", "🧪 Demo Mode", "⚙️ 設定"],
 )
 
 st.title("AI電話自動化 — 空室確認")
@@ -571,7 +570,84 @@ elif tab == "📊 結果一覧":
         )
 
 # ═══════════════════════════════════════════════
-# タブ5: 設定
+# タブ: Demo Mode（テストデータ生成）
+# ═══════════════════════════════════════════════
+elif tab == "🧪 Demo Mode":
+    st.header("🧪 Demo Mode — テストデータ生成")
+
+    st.markdown("""
+    ### テストシナリオ一覧
+
+    | # | シナリオ | 物件 | 空室 | 外国人 | 中国人 | 特徴 |
+    |---|----------|------|------|--------|--------|------|
+    | A | 空室あり・外国人OK | グランメゾン東京南青山 | あり | OK | OK | 標準ケース |
+    | B | 空室あり・外国人NG | サンシティ恵比寿 | あり | NG | NG | 入居制限 |
+    | C | 満室 | パークハウス新宿 | なし | 不明 | 不明 | キャンセル待ち |
+    | D | 条件付き | ロイヤルハイツ池袋 | あり | 条件付 | 不可 | 保証会社必須 |
+    | E | 留守電・不通 | コープ野馬世田谷 | 不明 | 不明 | 不明 | 再架電必要 |
+    | F | 曖昧回答 | メゾン・ド・上野 | 確認中 | 未確認 | 未確認 | 要再確認 |
+    | A2 | 詳細条件付きOK | ヴィラ代々木 | あり | OK | OK | 敷2礼1ペット不可 |
+    | C2 | 満室→予定あり | ハイツ練馬 | なし(予定あり) | OK | OK | 3ヶ月後入居可 |
+    """)
+
+    st.divider()
+
+    stats = get_demo_stats()
+    if stats["properties"] > 0:
+        st.subheader("現在のデータ状況")
+        c1, c2, c3, c4, c5 = st.columns(5)
+        c1.metric("全物件", stats["properties"])
+        c2.metric("完了", stats["scenarios"]["completed"])
+        c3.metric("メール送信済", stats["scenarios"]["email_sent"])
+        c4.metric("通話中", stats["scenarios"]["calling"])
+        c5.metric("未対応/失敗", stats["scenarios"]["pending"] + stats["scenarios"]["failed"])
+        st.info(f"照会記録: {stats['inquiries']}件")
+    else:
+        st.info("テストデータがありません。「テストデータ生成」で開始してください。")
+
+    st.divider()
+
+    c_gen, c_clear = st.columns(2)
+
+    with c_gen:
+        st.subheader("テストデータ生成")
+        st.markdown("8件のテスト物件 + メール・電話のシミュレーション結果を一括生成します。")
+        if st.button("🚀 テストデータ生成", type="primary", use_container_width=True):
+            result = seed_demo_data()
+            st.success(
+                f"生成完了！物件: {result['properties']}件 | "
+                f"メール照会: {result['emails']}件 | 通話記録: {result['calls']}件"
+            )
+            st.rerun()
+
+    with c_clear:
+        st.subheader("データクリア")
+        st.markdown("全てのテストデータ（物件・照会・通話記録）を削除します。")
+        if st.button("🗑️ 全データ削除", use_container_width=True):
+            clear_demo_data()
+            st.warning("全データを削除しました。")
+            st.rerun()
+
+    st.divider()
+    st.subheader("テストフローガイド")
+    st.markdown("""
+    **ステップ1: Demo Mode** — 上の「テストデータ生成」をクリック
+
+    **ステップ2: 📊 結果一覧** — 8件の物件の確認状況をダッシュボードで確認 → CSVダウンロードテスト
+
+    **ステップ3: 🏠 物件管理** — 物件の登録・編集・削除が正しく動くか確認
+
+    **ステップ4: 📧 メール確認** — AIメール生成をテスト（OpenAI Key必要）
+    - 既存のメール送信済物件を選択 → AI生成ボタンを押す
+
+    **ステップ5: 📞 電話確認** — Web Callで実際に通話テスト（Retell Key必要）
+    - 「未対応」の物件を選択 → Web Call開始
+
+    **ステップ6: ⚙️ 設定** — API Keyの保存・更新をテスト
+    """)
+
+# ═══════════════════════════════════════════════
+# タブ6: 設定
 # ═══════════════════════════════════════════════
 elif tab == "⚙️ 設定":
     st.header("設定")

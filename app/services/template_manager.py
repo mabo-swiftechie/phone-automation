@@ -75,15 +75,17 @@ def _get_conn() -> sqlite3.Connection:
 
 
 def seed_default_template():
-    blocks = list_blocks()
-    if blocks:
+    default_id = get_default_template_id()
+    if default_id and get_template(default_id):
         return
 
-    block_ids = []
-    for bd in DEFAULT_BLOCKS:
-        b = create_block(bd)
-        block_ids.append(b["id"])
+    blocks = list_blocks()
+    if not blocks:
+        for bd in DEFAULT_BLOCKS:
+            create_block(bd)
+        blocks = list_blocks()
 
+    block_ids = [b["id"] for b in blocks]
     tmpl = create_template({"name": "標準空室確認", "description": "デフォルトの空室確認テンプレート"})
     set_template_blocks(tmpl["id"], block_ids)
     set_default_template(tmpl["id"])

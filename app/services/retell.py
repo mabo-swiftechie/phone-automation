@@ -3,7 +3,7 @@ import httpx
 from app.config_manager import load_config
 from app.services.template_manager import get_prompt_for_property
 
-BASE_URL = "https://api.retellai.com/v2"
+CALL_BASE = "https://api.retellai.com/v2"
 
 
 def _to_e164(number: str) -> str:
@@ -44,7 +44,7 @@ def create_phone_call(
 
     with httpx.Client() as client:
         resp = client.post(
-            f"{BASE_URL}/create-phone-call",
+            f"{CALL_BASE}/create-phone-call",
             headers=headers,
             json=payload,
             timeout=30,
@@ -80,7 +80,7 @@ def create_web_call(
 
     with httpx.Client() as client:
         resp = client.post(
-            f"{BASE_URL}/create-web-call",
+            f"{CALL_BASE}/create-web-call",
             headers=headers,
             json=payload,
             timeout=30,
@@ -95,7 +95,7 @@ def get_call(call_id: str) -> dict:
 
     with httpx.Client() as client:
         resp = client.get(
-            f"{BASE_URL}/get-call/{call_id}",
+            f"{CALL_BASE}/get-call/{call_id}",
             headers=headers,
             timeout=30,
         )

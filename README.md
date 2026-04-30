@@ -128,3 +128,6 @@ phone_automation/
 ## 詳細ドキュメント
 
 - [docs/architecture.md](docs/architecture.md) — アーキテクチャ設計、技術選定理由
+- [docs/OPERATION_MANUAL.md](docs/OPERATION_MANUAL.md) — 操作手順書、テスト検証結果
+- [docs/PHONE_SETUP.md](docs/PHONE_SETUP.md) — 電話発信セットアップガイド
+- [docs/REQUIREMENTS_SPEC.md](docs/REQUIREMENTS_SPEC.md) — 要件定義仕様書

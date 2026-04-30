@@ -30,9 +30,6 @@ build/
 # Misc
 recordings/
 *.log
-retell_agent_config.json
-twilio_2FA_recovery_code.txt
-dummy.txt
 
 # Claude / Agent configs
 .claude/

@@ -8,21 +8,33 @@ CONFIG_PATH = DATA_DIR / "config.yaml"
 
 # Environment variable mapping: config key → env var name
 ENV_MAP = {
+    "tier": "TIER",
+    "voice_provider": "VOICE_PROVIDER",
     "openai_api_key": "OPENAI_API_KEY",
     "gmail_address": "GMAIL_ADDRESS",
     "gmail_app_password": "GMAIL_APP_PASSWORD",
     "retell_api_key": "RETELL_API_KEY",
     "retell_agent_id": "RETELL_AGENT_ID",
+    "retell_agent_id_budget": "RETELL_AGENT_ID_BUDGET",
+    "retell_agent_id_flow": "RETELL_AGENT_ID_FLOW",
+    "bland_api_key": "BLAND_API_KEY",
+    "bland_pathway_id": "BLAND_PATHWAY_ID",
     "company_name": "COMPANY_NAME",
     "contact_person": "CONTACT_PERSON",
 }
 
 DEFAULTS = {
+    "tier": "free",
+    "voice_provider": "retell",
     "openai_api_key": "",
     "gmail_address": "",
     "gmail_app_password": "",
     "retell_api_key": "",
     "retell_agent_id": "",
+    "retell_agent_id_budget": "",
+    "retell_agent_id_flow": "",
+    "bland_api_key": "",
+    "bland_pathway_id": "",
     "company_name": "",
     "contact_person": "",
     "phone_number": "",
@@ -45,6 +57,10 @@ def load_config() -> dict:
         val = os.environ.get(env_name, "").strip()
         if val:
             merged[key] = val
+    # Backward compatibility: if Retell API key exists but tier is still "free",
+    # auto-upgrade to "lightweight" so the user isn't unexpectedly on MockProvider
+    if merged.get("tier") == "free" and merged.get("retell_api_key") and merged.get("retell_agent_id"):
+        merged["tier"] = "lightweight"
     return merged
 
 

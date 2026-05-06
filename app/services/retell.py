@@ -3,6 +3,14 @@ import httpx
 from app.config_manager import load_config
 from app.services.template_manager import get_prompt_for_property
 
+"""
+DEPRECATED: This module is retained for backward compatibility only.
+Use app.services.voice_provider instead:
+    from app.services.voice_provider import get_voice_provider
+    provider = get_voice_provider()
+    result = provider.create_call(...)
+"""
+
 CALL_BASE = "https://api.retellai.com/v2"
 
 

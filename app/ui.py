@@ -23,7 +23,7 @@ from app.database import (
 from app.config_manager import load_config, save_config, is_configured, DEFAULTS
 from app.services.email_sender import send_email, generate_inquiry_email
 from app.services.email_parser import parse_email_response
-from app.services.retell import create_phone_call, create_web_call, get_call
+from app.services.voice_provider import get_voice_provider
 from app.services.template_manager import (
     create_block, get_block, list_blocks, update_block, delete_block,
     create_template, get_template, list_templates, update_template, delete_template,
@@ -292,6 +292,14 @@ elif tab == "📞 電話確認":
         # ── 新規発信 ──
         st.divider()
         st.subheader("新規発信")
+
+        _cfg = load_config()
+        _tier = _cfg.get("tier", "free")
+        _vp = get_voice_provider()
+
+        if _tier == "free" and not _vp.supports_phone_call:
+            st.info("📱 無料プラン: Web Callのみ利用可能。実電話はプランを lightweight 以上に変更してください。")
+
         callable_props = [p for p in properties if p["status"] in ("pending", "email_sent", "retry", "calling")]
 
         if not callable_props:
@@ -306,11 +314,12 @@ elif tab == "📞 電話確認":
                     st.write(f"**電話番号**: {prop['phone_number']}")
 
                 if st.button("🌐 Web Call 開始", type="primary"):
-                    with st.spinner("Retell AIに接続中..."):
+                    with st.spinner("音声AIに接続中..."):
                         try:
-                            res = create_web_call(prop["name"], prop["id"])
-                            call_id = res.get("call_id")
-                            token = res.get("access_token")
+                            provider = get_voice_provider()
+                            res = provider.create_web_call(prop["name"], prop["id"])
+                            call_id = res.call_id
+                            token = res.access_token
                             create_inquiry({
                                 "property_id": prop["id"], "type": "call",
                                 "status": "calling", "retell_call_id": call_id,
@@ -686,10 +695,38 @@ elif tab == "⚙️ 設定":
         cfg["retell_api_key"] = st.text_input("Retell API Key", value=cfg["retell_api_key"], type="password")
         cfg["retell_agent_id"] = st.text_input("Retell Agent ID", value=cfg["retell_agent_id"])
 
+        tier = st.selectbox(
+            "プラン", ["free", "lightweight", "full"],
+            index=["free", "lightweight", "full"].index(cfg.get("tier", "free")),
+            help="free=テストのみ, lightweight=実電話(〜$20/月), full=Conversation Flow(〜$100/月)",
+        )
+        cfg["tier"] = tier
+
+        voice_provider = st.selectbox(
+            "音声プロバイダー", ["retell", "mock"],
+            index=["retell", "mock", "bland"].index(cfg.get("voice_provider", "retell"))
+            if cfg.get("voice_provider", "retell") in ("retell", "mock", "bland") else 0,
+            help="retell=Retell AI, mock=テスト用（実際の通話なし）",
+        )
+        cfg["voice_provider"] = voice_provider
+
+        if tier in ("lightweight", "full"):
+            cfg["retell_agent_id_budget"] = st.text_input(
+                "Retell Budget Agent ID (GPT-4.1-mini)", value=cfg.get("retell_agent_id_budget", ""),
+                help="コスト最適化用Agent。空欄の場合は通常Agentを使用",
+            )
+        if tier == "full":
+            cfg["retell_agent_id_flow"] = st.text_input(
+                "Retell Flow Agent ID (Conversation Flow)", value=cfg.get("retell_agent_id_flow", ""),
+                help="Conversation Flow Agent。空欄の場合は通常Agentを使用",
+            )
+
         st.subheader("会社情報（メール署名用）")
         cfg["company_name"] = st.text_input("会社名", value=cfg["company_name"])
         cfg["contact_person"] = st.text_input("担当者名", value=cfg["contact_person"])
 
         if st.form_submit_button("保存", type="primary"):
             save_config(cfg)
+            from app.api.calls import reset_provider
+            reset_provider()
             st.success("設定を保存しました！")

@@ -209,16 +209,14 @@ class RetellProvider(VoiceProvider):
         return self.agent_id  # フォールバック
 
     def create_call(self, phone_number, property_name, property_id, mode="default"):
-        # 既存 retell.py の create_phone_call と同等
         # agent_id = self._select_agent(mode)
         ...
 
     def create_web_call(self, property_name, property_id):
-        # 既存 retell.py の create_web_call と同等
         ...
 
     def get_call_status(self, call_id):
-        # 既存 retell.py の get_call と同等
+        # get_call/{call_id} APIを呼び出し
         ...
 
     def parse_webhook(self, payload):

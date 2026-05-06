@@ -121,7 +121,7 @@ Retell AI で実際の電話をかけ、Dashboard設定を最適化。GPT-4.1-mi
 3. **設定ファイル更新**（コード変更あり）
    - `app/config_manager.py`: コスト最適化agent_id設定キー追加
    - `app/ui.py`: 通話品質/コスト選択トグル追加
-   - `app/services/retell.py`: agent選択ロジック追加
+   - `app/services/voice_provider.py`: RetellProviderにagent選択ロジック実装済み
 
 ### コード変更内容
 
@@ -136,16 +136,16 @@ CONFIG_KEYS = {
 }
 ```
 
-#### `app/services/retell.py`
+#### `app/services/voice_provider.py`（実装済み）
 
 ```python
-def create_phone_call(phone_number, property_name, property_id, budget_mode=False):
-    cfg = load_config()
-    agent_id = cfg.get("retell_agent_id_budget") if budget_mode else cfg["retell_agent_id"]
-    if not agent_id:
-        agent_id = cfg["retell_agent_id"]  # フォールバック
-    ...
-    payload = {"agent_id": agent_id, ...}
+class RetellProvider(VoiceProvider):
+    def _select_agent(self, mode: str) -> str:
+        if mode == "budget" and self.budget_agent_id:
+            return self.budget_agent_id
+        if mode == "flow" and self.flow_agent_id:
+            return self.flow_agent_id
+        return self.agent_id
 ```
 
 #### `app/ui.py`
@@ -249,13 +249,10 @@ Tier 2 の設定に加えて:
 
 #### 必要なコード変更
 
-**`app/services/retell.py`**:
+**`app/services/voice_provider.py`**（実装済み）:
 ```python
-# Conversation Flow Agent ID 対応
-def create_phone_call(phone_number, property_name, property_id, agent_type="flow"):
-    cfg = load_config()
-    agent_id = cfg.get(f"retell_agent_id_{agent_type}", cfg["retell_agent_id"])
-    ...
+# RetellProvider._select_agent() で flow mode 対応済み
+# Conversation Flow Agent ID は config の retell_agent_id_flow で設定
 ```
 
 **`app/services/template_manager.py`**:

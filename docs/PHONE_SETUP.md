@@ -1,42 +1,61 @@
 # AI電話自動化 — 電話発信セットアップガイド
 
-> 電話確認機能には発信元電話番号が必要です。
-> Web Call（ブラウザ通話）は電話番号なしで無料テスト可能です。
+> 最終更新：2026-05-08
 
 ---
 
-## 比較：3つの発信方法
+## 現在の Retell AI 設定
+
+### エージェント一覧
+
+| エージェント | ID | LLM | 用途 |
+|-------------|-----|-----|------|
+| 主エージェント | `agent_4667d48d2f7807f07d7f031cc2` | GPT-4.1 | 高品質通話 |
+| Budget Agent | `agent_a9e3df5b3bc4fa1a4d75d244db` | GPT-4.1-mini | 低コスト通話 |
+
+### Dashboard 最適化パラメータ（両Agent共通）
+
+| パラメータ | 値 | 説明 |
+|-----------|-----|------|
+| interruption_sensitivity | 0.8 | 割り込み検出感度 |
+| responsiveness | 0.9 | 応答速度 |
+| enable_backchannel | true | 相槌機能 |
+| backchannel_words | ["はい", "承知いたしました", "そうですか"] | 相槌の種類 |
+| backchannel_frequency | 0.3 | 相槌の頻度 |
+| enable_dynamic_responsiveness | true | 動的応答調整 |
+| denoising_mode | noise-cancellation | ノイズ除去 |
+| stt_mode | accurate | 高精度音声認識 |
+| language | ja-JP | 日本語 |
+
+---
+
+## 発信方法の比較
 
 | 項目 | Web Call（ブラウザ） | Retell 電話番号 | Twilio +81番号 |
 |------|---------------------|----------------|---------------|
-| **費用** | 無料 | ~$1-5/月 + 通話料 | $4.75/月 + 通話料 |
-| **電話番号** | 不要 | Retell内で購入 | Twilioで購入 |
+| **費用** | 無料 | ~$2-5/月 + 通話料 | $4.75/月 + 通話料 |
 | **相手の電話が鳴る** | ❌ ブラウザ内のみ | ✅ 実際に発信 | ✅ 実際に発信 |
-| **日本語対応** | ✅ | ✅ | ✅ |
-| **セットアップ** | なし | 簡単（Dashboard） | 中程度（Twilio設定） |
-| **用途** | テスト・品質確認 | 本番運用 | 大規模本番運用 |
-| **推奨** | テスト段階 | 小〜中規模 | 大規模 |
+| **セットアップ** | なし | 簡単（Dashboard） | 中程度 |
+| **用途** | テスト | 小〜中規模 | 大規模 |
 
 ---
 
-## 方案A：Web Call（ブラウザ通話）— 無料テスト
+## 方案A：Web Call — 無料テスト
 
 ### 手順
 
 1. ブラウザで http://localhost:8501 を開く
-2. 左サイドバー「📞 電話確認」をクリック
-3. 物件を選択
-4. 「🌐 Web Call 開始」ボタンをクリック
-5. ブラウザのマイク許可 → 「許可」
-6. 「Start 通話」→ AIと会話 → 「Stop 通話」
-7. 「結果を取得」ボタンで通話結果を確認
+2. 「📞 電話確認」→ 物件を選択
+3. 「🌐 Web Call 開始」→ マイク許可
+4. 「Start 通話」→ AIと会話 → 「Stop 通話」
+5. 「結果を取得」で通話結果を確認
 
 ### テストのポイント
 
-- AIの日本語敬語が自然か
+- 日本語敬語が自然か
 - 空室確認の質問が適切か
-- 外国人・中国人入居可否の確認ができているか
-- 相手の回答に対する追質問が自然か
+- 割り込みに対する対応が正しいか
+- 長い反復やまとめがないか
 
 ---
 
@@ -46,21 +65,13 @@
 
 1. https://www.retellai.com/dashboard/phone-numbers を開く
 2. 「Create Phone Number」をクリック
-3. 番号の種類を選択：
 
 | 種類 | 料金 | 特徴 |
 |------|------|------|
-| +1（米国番号） | ~$1-2/月 | 安価、日本への発信可能 |
-| +81（日本番号） | ~$5/月 | 日本の局番表示、応答率が高い |
+| +1（米国番号） | ~$2/月 | 安価、日本への発信可能 |
+| +81（日本番号） | ~$5/月 | 日本の局番、応答率が高い |
 
-4. 購入完了後、番号をコピー
-5. config.yaml に追加：
-
-```yaml
-retell_from_number: "+1xxxxxxxxxx"  # 購入した番号
-```
-
-6. システムを再起動
+3. 購入後、設定画面で電話番号を入力
 
 ### 発信テスト
 
@@ -70,47 +81,64 @@ curl -X POST http://localhost:8000/calls/trigger \
   -d '{"property_id": "物件ID"}'
 ```
 
+### Webhook 設定
+
+Retell Dashboard → Agent → Webhook URL に設定：
+
+```
+http://<EC2_PUBLIC_IP>:8000/calls/webhook
+```
+
+通話完了後に結果が自動記録される。
+
 ---
 
 ## 方案C：Twilio +81番号 — 大規模本番
 
-### 前提条件
+### 前提
 
 - Twilioアカウント（https://www.twilio.com）
-- 日本の住所証明書類（本人確認/KYC）
+- 日本の住所証明書類（KYC）
 - SIPドメイン設定
-
-### 手順
-
-1. Twilio Console → Phone Numbers → Buy a Number
-2. +81 03等の固定番号を購入（$4.75/月）
-3. 規制要件（Regulatory Compliance）の書類提出
-4. SIPドメインを作成し、Retell AIと連携
-5. Retell Dashboard → Custom Telephony → Import Phone Number
 
 ### 月額コスト概算（100件/月）
 
 | 項目 | 費用 |
 |------|------|
 | Twilio電話番号 | $4.75/月 |
-| 発信通話料 | ~$0.015/分 × 3分 × 100件 = ~$4.50 |
-| Retell Platform | ~$0.055/分 × 3分 × 100件 = ~$16.50 |
-| **合計** | **~$26/月（約¥3,900）** |
+| 発信通話料 | ~$4.50 |
+| Retell Platform | ~$16.50 |
+| **合計** | **~$26/月** |
 
 ---
 
 ## 推奨移行パス
 
 ```
-現在 → Web Call でテスト（無料）
-    ↓ AI会話品質を確認
-    ↓
-Phase 2 → Retell電話番号を購入（$1-5/月）
-    ↓ 実際の管理会社にテスト発信
-    ↓
-Phase 3 → Twilio +81番号（本番運用）
-    ↓ 接通率向上・バッチ発信・スケール
+1. Web Call でテスト（無料）
+   ↓ AI会話品質を確認
+
+2. Retell電話番号を購入（$2-5/月）
+   ↓ 実際の管理会社にテスト発信
+   ↓ トランスクリプト分析
+
+3. Budget Agent でコスト最適化（GPT-4.1-mini）
+   ↓ 品質とコストのバランス確認
+
+4. Twilio +81番号 or Conversation Flow（本番運用）
+   ↓ バッチ発信・スケール
 ```
+
+---
+
+## 通話コスト比較
+
+| LLM | /min | 3分通話 | 60通話/月 |
+|-----|------|---------|----------|
+| GPT-4.1 (主Agent) | $0.130 | $0.390 | $23.40 |
+| GPT-4.1-mini (Budget) | $0.101 | $0.303 | $18.18 |
+
+Budget Agent を使うと月額約22%のコスト削減。
 
 ---
 
@@ -122,4 +150,3 @@ Phase 3 → Twilio +81番号（本番運用）
 | Retell 電話番号管理 | https://www.retellai.com/dashboard/phone-numbers |
 | Retell 料金 | https://docs.retellai.com/pricing |
 | Twilio 日本番号 | https://www.twilio.com/ja/phone-numbers |
-| Retell API Docs | https://docs.retellai.com/api-references/create-phone-call |

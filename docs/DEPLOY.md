@@ -240,13 +240,148 @@ sudo systemctl restart phone-api phone-ui
 
 ---
 
+## 4. Cloudflare Tunnel（HTTPS公開）
+
+Web Call（ブラウザ通話）はマイクアクセスに **HTTPS が必要**。Cloudflare Tunnel で無料の HTTPS URL を取得。
+
+### 4.1 前提
+
+- cloudflared がインストール済み
+- EC2 インスタンスが起動している
+
+```bash
+# macOS
+brew install cloudflared
+
+# Linux
+curl -L https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64 -o /usr/local/bin/cloudflared
+chmod +x /usr/local/bin/cloudflared
+```
+
+### 4.2 クイックトンネル（一時的・無料）
+
+```bash
+cloudflared tunnel --url http://18.179.40.162:8501
+```
+
+起動後、以下のような URL が表示される：
+
+```
+https://xxxx-xxxx-xxxx.trycloudflare.com
+```
+
+この URL で：
+- ✅ HTTPS（ブラウザがマイクを許可）
+- ✅ Streamlit UI にアクセス可能
+- ✅ Web Call が使用可能
+
+### 4.3 名前付きトンネル（本番用・固定URL）
+
+```bash
+# ログイン
+cloudflared tunnel login
+
+# トンネル作成
+cloudflared tunnel create phone-automation
+
+# DNS レコード設定（例: phone.yourdomain.com）
+cloudflared tunnel route dns phone-automation phone.yourdomain.com
+
+# 設定ファイル ~/.cloudflared/config.yml
+cat > ~/.cloudflared/config.yml << 'EOF'
+tunnel: phone-automation
+credentials-file: ~/.cloudflared/<TUNNEL_ID>.json
+
+ingress:
+  - hostname: phone.yourdomain.com
+    service: http://18.179.40.162:8501
+  - hostname: api.phone.yourdomain.com
+    service: http://18.179.40.162:8000
+  - service: http_status:404
+EOF
+
+# 起動
+cloudflared tunnel run phone-automation
+```
+
+### 4.4 systemd で自動起動（EC2上）
+
+```bash
+# EC2 上に cloudflared をインストール
+ssh -i key.pem ubuntu@<EC2_IP> 'sudo curl -L https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-arm64 -o /usr/local/bin/cloudflared && sudo chmod +x /usr/local/bin/cloudflared'
+```
+
+`/etc/systemd/system/cloudflared.service`:
+
+```ini
+[Unit]
+Description=Cloudflare Tunnel
+After=network.target
+
+[Service]
+Type=simple
+User=ubuntu
+ExecStart=/usr/local/bin/cloudflared tunnel --url http://localhost:8501
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
+```
+
+```bash
+sudo systemctl enable cloudflared
+sudo systemctl start cloudflared
+```
+
+### 4.5 HTTPS の必要性について
+
+| アクセス方法 | HTTP | HTTPS |
+|-------------|------|-------|
+| ローカル (localhost) | ✅ マイク許可 | ✅ マイク許可 |
+| EC2 パブリック IP | ❌ マイク拒否 | ✅ マイク許可 |
+| Cloudflare Tunnel | — | ✅ マイク許可 |
+
+> 実際の電話発信（Retell AI → 管理会社）には HTTPS は不要。Web Call テストのみ必要。
+
+---
+
+## 5. コード更新の同期
+
+EC2 のコードを最新化する手順：
+
+```bash
+# ローカルでパッケージング
+COPYFILE_DISABLE=1 tar czf /tmp/sync.tar.gz \
+  --exclude='.git' --exclude='__pycache__' --exclude='venv' --exclude='.venv' \
+  --exclude='.DS_Store' --exclude='._*' --exclude='*.egg-info' \
+  -C /Users/jpjys/developer/swiftechie phone_automation/
+
+# アップロード＆展開
+scp -i key.pem /tmp/sync.tar.gz ubuntu@<EC2_IP>:/tmp/
+ssh -i key.pem ubuntu@<EC2_IP>
+
+# リモートで実行
+cd ~/phone_automation
+tar xzf /tmp/sync.tar.gz
+source .venv/bin/activate
+pip install --force-reinstall --no-deps .   # パッケージ再インストール
+find . -name "__pycache__" -exec rm -rf {} + 2>/dev/null  # キャッシュクリア
+sudo systemctl restart phone-api phone-ui
+```
+
+> **注意**: `__pycache__` のキャッシュが原因でコード変更が反映されない場合がある。更新後は必ず `pip install --force-reinstall --no-deps .` とキャッシュクリアを実行。
+
+---
+
 ## 比較
 
-| 項目 | run.sh | Docker | AWS EC2 |
-|------|--------|--------|---------|
-| 費用 | 無料 | 無料 | ~$1.60/月 |
-| データ永続 | ✅ | ✅ | ✅ |
-| 固定URL | ローカル | ローカル | ✅ パブリックIP |
-| Webhook受信 | ❌ | ❌ | ✅ |
-| 技術知識 | 不要 | Docker要 | AWS CLI要 |
-| 本番運用 | ❌ | ❌ | ✅ |
+| 項目 | run.sh | Docker | AWS EC2 | AWS + CF Tunnel |
+|------|--------|--------|---------|-----------------|
+| 費用 | 無料 | 無料 | ~$1.60/月 | ~$1.60/月 |
+| データ永続 | ✅ | ✅ | ✅ | ✅ |
+| 固定URL | ローカル | ローカル | IP のみ | ✅ HTTPS ドメイン |
+| Webhook受信 | ❌ | ❌ | ✅ | ✅ |
+| Web Call（マイク） | ✅ | ❌ | ❌ | ✅ |
+| 技術知識 | 不要 | Docker要 | AWS CLI要 | AWS + CF要 |
+| 本番運用 | ❌ | ❌ | ✅ | ✅ |

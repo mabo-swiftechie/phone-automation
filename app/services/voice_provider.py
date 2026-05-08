@@ -40,6 +40,7 @@ class CallStatus:
     duration_seconds: Optional[int] = None
     transcript: Optional[str] = None
     recording_url: Optional[str] = None
+    call_analysis: Optional[dict] = None
 
 
 @dataclass
@@ -222,6 +223,7 @@ class RetellProvider(VoiceProvider):
             duration_seconds=data.get("duration_seconds"),
             transcript=data.get("transcript"),
             recording_url=data.get("recording_url"),
+            call_analysis=data.get("call_analysis"),
         )
 
     def parse_webhook(self, payload: dict) -> WebhookResult:

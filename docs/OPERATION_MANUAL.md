@@ -155,6 +155,11 @@ Gmailアプリパスワード: xxxx xxxx xxxx xxxx
 5. 「Start 通話」→ AIと会話 → 「Stop 通話」
 6. 「結果を取得」ボタンで通話結果を確認
 
+> **注意**: Web Call はブラウザのマイクを使用するため、HTTPS が必要です。
+> - ローカル (localhost): HTTP で動作
+> - リモート (EC2 等): Cloudflare Tunnel 等で HTTPS 化が必要
+> - 詳細は [デプロイガイド](DEPLOY.md#4-cloudflare-tunnelhttps公開) を参照
+
 **実際の電話発信**
 
 FastAPI API から発信トリガー（lightweight以上のプランが必要）:

@@ -263,10 +263,11 @@ elif tab == "📞 電話確認":
                         if st.button("結果を取得", key=f"fetch_{ci['id']}", type="primary"):
                             with st.spinner("Retell AIから取得中..."):
                                 try:
-                                    cd = get_call(ci["retell_call_id"])
-                                    analysis = cd.get("call_analysis", {})
+                                    provider = get_voice_provider()
+                                    cd = provider.get_call_status(ci["retell_call_id"])
+                                    analysis = cd.call_analysis or {}
                                     custom = analysis.get("custom_analysis_data", {})
-                                    cs = cd.get("call_status", "")
+                                    cs = cd.status
                                     if custom:
                                         update_inquiry(ci["id"], {
                                             "status": "completed" if cs == "ended" else cs,

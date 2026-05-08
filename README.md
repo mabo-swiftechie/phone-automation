@@ -25,7 +25,17 @@ cp .env.example .env         # API Key を入力
 docker compose up -d
 ```
 
-### 方法3：AWS EC2（本番運用）
+### 方法3：AWS + Cloudflare（本番運用・HTTPS）
+
+```bash
+# Cloudflare Tunnel で HTTPS URL を取得（マイクアクセス可能）
+cloudflared tunnel --url http://<EC2_PUBLIC_IP>:8501
+# → https://xxxx-xxxx.trycloudflare.com
+```
+
+> 詳細: [デプロイガイド](docs/DEPLOY.md)
+
+### 方法4：AWS EC2（HTTPのみ・本番API）
 
 **3.1 IAM ユーザー作成**
 ```bash
